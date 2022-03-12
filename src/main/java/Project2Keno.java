@@ -110,6 +110,7 @@ public class Project2Keno extends Application {
 		Button spotsAmountFour = new Button("4");
 		Button spotsAmountEight = new Button("8");
 		Button spotsAmountTen = new Button("10");
+		//FIXME: spot amount buttons currently do nothing
 		HBox spotsButtonsHBox = new HBox(spotsAmountOne, spotsAmountFour, spotsAmountEight, spotsAmountTen);
 		//Drawings Label
 		Label drawLabel = new Label("Pick how many Drawings you would like to play!");
@@ -118,12 +119,14 @@ public class Project2Keno extends Application {
 		Button drawAmountTwo = new Button("2");
 		Button drawAmountThree = new Button("3");
 		Button drawAmountFour = new Button("4");
+		//FIXME: Draw amount buttons currently do nothing
 		HBox drawButtonsHBox = new HBox(drawAmountOne, drawAmountTwo, drawAmountThree, drawAmountFour);
 		//Gridpane w/ Buttons
 		GridPane betCardGridPane = new GridPane();
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 10; j++ ) {
 				betCardGridPane.add(new Button(""+((i*10)+j+1)), j, i);
+				//FIXME: Grid buttons currently do nothing
 			}
 		}
 		//Pick for Me Button
