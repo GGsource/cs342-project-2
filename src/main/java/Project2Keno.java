@@ -18,6 +18,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+//TODO: Header Comment
+
 public class Project2Keno extends Application {
 	//Global Scenes declared so theyre accessible in all functions
 	private Scene prevScene = null;
@@ -128,7 +130,7 @@ public class Project2Keno extends Application {
 				gridButton.setOnAction(e->{
 					if (gridButton.isSelected()) { //User pressed it again so they must want to unpick this number
 						//set it back to unpressed
-						gridButton.setPressed(false);
+						gridButton.setSelected(false);
 						//Set color back to normal
 						gridButton.setStyle("-fx-background-color: #b0d57b");
 						//decrement amount of buttons selected by 1
@@ -144,7 +146,7 @@ public class Project2Keno extends Application {
 						}
 					}
 					else {
-						gridButton.setPressed(true);//Set it to pressed so we can toggle
+						gridButton.setSelected(true);//Set it to pressed so we can toggle
 						//Change color to stand out
 						gridButton.setStyle("-fx-background-color: #9bd747");
 						//Increment amount of buttons selected by 1
