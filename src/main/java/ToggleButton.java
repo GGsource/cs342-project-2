@@ -9,6 +9,9 @@ user changes their mind.
 */
 public class ToggleButton extends Button {
     private boolean selectedState = false;
+    
+    public static String normalColor = "#b0d57b"; //Green for unselected buttons
+    public static String highlightedColor = "#92e222"; //Green for selected buttons
 
     //ToggleButton Constructor
     ToggleButton(String buttonName) {
