@@ -1,5 +1,8 @@
-import javafx.application.Application;
 
+import java.util.HashSet;
+
+import javafx.application.Application;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -16,16 +19,19 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class Project2Keno extends Application {
-	//Scenes declared globally so theyre accessible in functions
+	//Global Scenes declared so theyre accessible in all functions
 	private Scene prevScene = null;
 	private Scene welcomeScene = null;
 	private Scene rulesScene = null;
 	private Scene oddsScene = null;
 	private Scene gameplayScene = null;
 
-	private int spotCount;
-	private Button chosenSpotButton = null;
+	//Global Variables
+	private int chosenSpotCount; //Amount of spots user said they want
+	private int currentSpotCount;//Amount of spots user has chosen so far
+	private Button chosenSpotButton = null; //Keep track of which spot button is chosen
 	private int drawCount;
+	private HashSet<Button> spotsSet = new HashSet<>();
 	
 	private void initializeScenes(Stage givenStage) {
 		welcomeScene = createWelcomeScene(givenStage);
@@ -109,6 +115,67 @@ public class Project2Keno extends Application {
 		//Image - Lets the user see they are now on the bet card
 		ImageView gameplayImageView = new ImageView(new Image("file:./src/main/resources/gameplay_title.png", true));
 		
+		//Grid for betcard buttons
+		GridPane betCardGridPane = new GridPane(); 
+		//Populate GridPane with buttons
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 10; j++ ) {
+				int currentNum = (i*10)+j+1; //This is the correct number displayed on button
+				ToggleButton gridButton = new ToggleButton(""+ currentNum);
+				//Color gridbutton
+				gridButton.setStyle("-fx-background-color: #b0d57b");
+				//Give the buttons behavior on press
+				gridButton.setOnAction(e->{
+					if (gridButton.isSelected()) { //User pressed it again so they must want to unpick this number
+						//set it back to unpressed
+						gridButton.setPressed(false);
+						//Set color back to normal
+						gridButton.setStyle("-fx-background-color: #b0d57b");
+						//decrement amount of buttons selected by 1
+						currentSpotCount -= 1;
+						//Remove from list of chosen numbers
+						spotsSet.remove(gridButton);
+						//DEBUGGING: Line to be disabled later
+						System.out.println("Currently Chosen Spots: " + spotsSet);
+						//number of buttons selected is now LESS than chosenSpotCount, reenable all buttons
+						for (Node gButton : betCardGridPane.getChildren()) {
+							ToggleButton castedBtn = (ToggleButton) gButton;
+							castedBtn.setDisable(false);
+						}
+					}
+					else {
+						gridButton.setPressed(true);//Set it to pressed so we can toggle
+						//Change color to stand out
+						gridButton.setStyle("-fx-background-color: #9bd747");
+						//Increment amount of buttons selected by 1
+						currentSpotCount += 1;
+						//Add to list of chosen numbers
+						spotsSet.add(gridButton);
+						//DEBUGGING: line to be disabled later
+						System.out.println("Currently Chosen Spots: " + spotsSet);
+						//If amount of buttons selected is now = to chosenSpotCount then disable all buttons OTHER than already chosen ones
+						if (currentSpotCount >= chosenSpotCount) {
+							for (Node gButton : betCardGridPane.getChildren()) {
+								ToggleButton castedBtn = (ToggleButton) gButton; //have to recast to access it
+								if (!spotsSet.contains(castedBtn)) { //If the button is not in our set
+									gButton.setDisable(true); //Disable it
+								}
+							}
+						}
+					}
+				});
+				betCardGridPane.add(gridButton, j, i);
+			}
+		}
+		//Disable gridpane first until spot count is chosen
+		betCardGridPane.setDisable(true); 
+		//Pick for Me Button
+		Button pickForMeButton = new Button("Pick For Me!");
+		//Make button pick random nums
+		pickForMeButton.setOnAction(e->randomizeBetCard());
+		//Disable until spot count is chosen
+		pickForMeButton.setDisable(true);
+
 		//Spots Label - Tells user to pick how many spots to play
 		Label spotsLabel = new Label("Pick how many Spots you would like to play! ");
 		//HBox Will hold buttons horizontally
@@ -127,8 +194,15 @@ public class Project2Keno extends Application {
 					if (chosenSpotButton != null)
 						chosenSpotButton.setStyle("-fx-background-color: #e87564;");
 					chosenSpotButton = spotButton; //update chosen spot button
-					spotCount = Integer.parseInt(spotButton.getText());
-					System.out.println("Spot button was pressed! spotCount is now " + spotCount);
+					chosenSpotCount = Integer.parseInt(spotButton.getText());
+					//DEBUGGING:
+					System.out.println("Spot button was pressed! spotCount is now " + chosenSpotCount);
+					//Now that spots are chosen, enable grid!
+					betCardGridPane.setDisable(false);
+					//Enable random pick too
+					pickForMeButton.setDisable(false);
+					//TODO: Make it so picking a spotcount clears the gridpane selections
+					//pickforme should also clear gridpane. make it a function
 				}
 			});
 		}
@@ -143,19 +217,6 @@ public class Project2Keno extends Application {
 		//FIXME: Draw amount buttons currently do nothing
 		HBox drawButtonsHBox = new HBox(drawAmountOne, drawAmountTwo, drawAmountThree, drawAmountFour);
 
-		//Gridpane w/ Buttons
-		GridPane betCardGridPane = new GridPane();
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 10; j++ ) {
-				betCardGridPane.add(new Button(""+((i*10)+j+1)), j, i);
-				//FIXME: Grid buttons currently do nothing
-			}
-		}
-		betCardGridPane.setDisable(true); //Disable at first until spot count is chosen
-		//Pick for Me Button
-		Button pickForMeButton = new Button("Pick For Me!");
-		pickForMeButton.setOnAction(e->randomizeBetCard());
-		pickForMeButton.setDisable(true); //Disable until spot count is chosen
 		//Begin Draw Button
 		Button beginDrawButton = new Button("Begin Draw");
 		//TODO: Implement Drawing Process
