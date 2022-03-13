@@ -16,11 +16,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class Project2Keno extends Application {
+	//Scenes declared globally so theyre accessible in functions
 	private Scene prevScene = null;
 	private Scene welcomeScene = null;
 	private Scene rulesScene = null;
 	private Scene oddsScene = null;
 	private Scene gameplayScene = null;
+
+	private int spotCount;
+	private Button chosenSpotButton = null;
+	private int drawCount;
 	
 	private void initializeScenes(Stage givenStage) {
 		welcomeScene = createWelcomeScene(givenStage);
@@ -101,17 +106,33 @@ public class Project2Keno extends Application {
 		//Toolbar with previous Menu and new look menu
 		Menu rulesAndOddsMenu = createRulesAndOddsMenu(givenStage);
 		MenuBar gameplayMenuBar = new MenuBar(rulesAndOddsMenu, newLookMenu);
-		//Image
+		//Image - Lets the user see they are now on the bet card
 		ImageView gameplayImageView = new ImageView(new Image("file:./src/main/resources/gameplay_title.png", true));
-		//Spots Label
-		Label spotsLabel = new Label("Pick how many Spots you would like to play!");
-		//Spots Buttons
-		Button spotsAmountOne = new Button("1");
-		Button spotsAmountFour = new Button("4");
-		Button spotsAmountEight = new Button("8");
-		Button spotsAmountTen = new Button("10");
-		//FIXME: spot amount buttons currently do nothing
-		HBox spotsButtonsHBox = new HBox(spotsAmountOne, spotsAmountFour, spotsAmountEight, spotsAmountTen);
+		
+		//Spots Label - Tells user to pick how many spots to play
+		Label spotsLabel = new Label("Pick how many Spots you would like to play! ");
+		//HBox Will hold buttons horizontally
+		HBox spotsButtonsHBox = new HBox();
+		//Spots Buttons - Put in a list since they all do pretty much the same thing
+		Button spotButtonList[] = {new Button("1"), new Button("4"), new Button("8"), new Button("10")};
+		for (Button spotButton : spotButtonList) {
+			spotsButtonsHBox.getChildren().add(spotButton); //Add the button to HBox
+			spotButton.setStyle("-fx-background-color: #e87564;");
+			//Pressing these buttons sets spotCount to the intended Number
+			spotButton.setOnAction(e->{
+				if (chosenSpotButton != spotButton) { //No need to repeatedly set if it's already set
+					//Make the pressed button stand out
+					spotButton.setStyle("-fx-background-color: #e24028;");
+					//make sure any previous pressed are returned to normal
+					if (chosenSpotButton != null)
+						chosenSpotButton.setStyle("-fx-background-color: #e87564;");
+					chosenSpotButton = spotButton; //update chosen spot button
+					spotCount = Integer.parseInt(spotButton.getText());
+					System.out.println("Spot button was pressed! spotCount is now " + spotCount);
+				}
+			});
+		}
+
 		//Drawings Label
 		Label drawLabel = new Label("Pick how many Drawings you would like to play!");
 		//Drawings Buttons
@@ -121,6 +142,7 @@ public class Project2Keno extends Application {
 		Button drawAmountFour = new Button("4");
 		//FIXME: Draw amount buttons currently do nothing
 		HBox drawButtonsHBox = new HBox(drawAmountOne, drawAmountTwo, drawAmountThree, drawAmountFour);
+
 		//Gridpane w/ Buttons
 		GridPane betCardGridPane = new GridPane();
 		for (int i = 0; i < 8; i++) {
@@ -129,13 +151,16 @@ public class Project2Keno extends Application {
 				//FIXME: Grid buttons currently do nothing
 			}
 		}
+		betCardGridPane.setDisable(true); //Disable at first until spot count is chosen
 		//Pick for Me Button
 		Button pickForMeButton = new Button("Pick For Me!");
 		pickForMeButton.setOnAction(e->randomizeBetCard());
+		pickForMeButton.setDisable(true); //Disable until spot count is chosen
 		//Begin Draw Button
 		Button beginDrawButton = new Button("Begin Draw");
 		//TODO: Implement Drawing Process
 		beginDrawButton.setOnAction(e->System.out.println("Begin draw was pressed but not yet implemented..."));
+		beginDrawButton.setDisable(true); //Disable until spotcount and drawcount are chosen
 
 		VBox gameplayVBox = new VBox(gameplayMenuBar, gameplayImageView, spotsLabel, spotsButtonsHBox, drawLabel, drawButtonsHBox, betCardGridPane, pickForMeButton, beginDrawButton);
 		Scene gameplayScene = new Scene(gameplayVBox, 700, 700);
