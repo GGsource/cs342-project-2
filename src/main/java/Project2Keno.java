@@ -31,9 +31,11 @@ public class Project2Keno extends Application {
 	//Global Variables
 	private int chosenSpotCount; //Amount of spots user said they want
 	private int currentSpotCount;//Amount of spots user has chosen so far
-	private Button chosenSpotButton = null; //Keep track of which spot button is chosen
-	private int drawCount;
+	private ToggleButton chosenSpotButton = null; //Keep track of which spot button is chosen
+	private int chosenDrawCount;
+	private ToggleButton chosenDrawButton = null;
 	private HashSet<ToggleButton> spotsSet = new HashSet<>();
+	private Button beginDrawButton = new Button("Begin Draw");
 	
 	private void initializeScenes(Stage givenStage) {
 		welcomeScene = createWelcomeScene(givenStage);
@@ -116,7 +118,7 @@ public class Project2Keno extends Application {
 		MenuBar gameplayMenuBar = new MenuBar(rulesAndOddsMenu, newLookMenu);
 		//Image - Lets the user see they are now on the bet card
 		ImageView gameplayImageView = new ImageView(new Image("file:./src/main/resources/gameplay_title.png", true));
-		
+
 		//Grid for betcard buttons
 		GridPane betCardGridPane = new GridPane(); 
 		//Populate GridPane with buttons
@@ -131,8 +133,7 @@ public class Project2Keno extends Application {
 					//If we already have enough spots and a new button is pressed, it should be
 					//Ignored unless it is one of the already chosen buttons, in which case it
 					//will be unchosen.
-					if ((currentSpotCount < chosenSpotCount) || spotsSet.contains(gridButton))
-					{
+					if ((currentSpotCount < chosenSpotCount) || spotsSet.contains(gridButton)) {
 						if (gridButton.isSelected()) { //User pressed it again so they must want to unpick this number
 							//set it back to unpressed
 							gridButton.setSelected(false);
@@ -171,6 +172,7 @@ public class Project2Keno extends Application {
 							// }
 						}
 					}
+					checkIfReadyToBegin(beginDrawButton);
 				});
 				betCardGridPane.add(gridButton, j, i);
 			}
@@ -189,8 +191,8 @@ public class Project2Keno extends Application {
 		//HBox Will hold buttons horizontally
 		HBox spotsButtonsHBox = new HBox();
 		//Spots Buttons - Put in a list since they all do pretty much the same thing
-		Button spotButtonList[] = {new Button("1"), new Button("4"), new Button("8"), new Button("10")};
-		for (Button spotButton : spotButtonList) {
+		ToggleButton spotButtonList[] = {new ToggleButton("1"), new ToggleButton("4"), new ToggleButton("8"), new ToggleButton("10")};
+		for (ToggleButton spotButton : spotButtonList) {
 			spotsButtonsHBox.getChildren().add(spotButton); //Add the button to HBox
 			spotButton.setStyle("-fx-background-color: #e87564");
 			//Pressing these buttons sets spotCount to the intended Number
@@ -204,7 +206,7 @@ public class Project2Keno extends Application {
 					chosenSpotButton = spotButton; //update chosen spot button
 					chosenSpotCount = Integer.parseInt(spotButton.getText());
 					//DEBUGGING:
-					System.out.println("Spot button was pressed! spotCount is now " + chosenSpotCount);
+					System.out.println("Spot button was pressed! chosenSpotCount is now " + chosenSpotCount);
 					//Now that spots are chosen, enable grid!
 					betCardGridPane.setDisable(false);
 					//Enable random pick too
@@ -212,26 +214,45 @@ public class Project2Keno extends Application {
 					//DONE: Make it so picking a spotcount clears the gridpane selections
 					resetGrid(betCardGridPane);
 					//pickforme should also clear gridpane. make it a function
+					checkIfReadyToBegin(beginDrawButton);
 				}
 			});
 		}
 
 		//Drawings Label
 		Label drawLabel = new Label("Pick how many Drawings you would like to play!");
-		//Drawings Buttons
-		Button drawAmountOne = new Button("1");
-		Button drawAmountTwo = new Button("2");
-		Button drawAmountThree = new Button("3");
-		Button drawAmountFour = new Button("4");
-		//FIXME: Draw amount buttons currently do nothing
-		HBox drawButtonsHBox = new HBox(drawAmountOne, drawAmountTwo, drawAmountThree, drawAmountFour);
+		//Hbox will hold draw buttons horizontally
+		HBox drawButtonsHBox = new HBox();
+		//make our buttons in a list since their behavior is nearly identical
+		ToggleButton drawButtonList[] = {new ToggleButton("1"), new ToggleButton("2"), new ToggleButton("3"), new ToggleButton("4")};
+		for (ToggleButton drawButton : drawButtonList) {
+			//Add the button to the hbox
+			drawButtonsHBox.getChildren().add(drawButton);
+			//Color it appropriately
+			drawButton.setStyle("-fx-background-color: #7377e8");
+			//Upon pressing one of these buttons, chosenDrawCount should change
+			drawButton.setOnAction(e->{
+				if (drawButton != chosenDrawButton) { //Make sure a new button is being pressed
+					//Make pressed button stand out
+					drawButton.setStyle("-fx-background-color: #4e53e9");
+					//make sure any previous pressed are returned to normal color
+					if (chosenDrawButton != null)
+						chosenDrawButton.setStyle("-fx-background-color: #7377e8");
+					chosenDrawButton = drawButton; //update chosen draw button
+					chosenDrawCount = Integer.parseInt(drawButton.getText());
+					//DEBUGGING:
+					System.out.println("Draw button was pressed! chosenDrawCount is now " + chosenDrawCount);
+					checkIfReadyToBegin(beginDrawButton);
+				}
+			});
 
-		//Begin Draw Button
-		Button beginDrawButton = new Button("Begin Draw");
-		//TODO: Implement Drawing Process
+		}
+
+		//Begin Draw Button - Needs to be high up to pass to other functions
 		beginDrawButton.setOnAction(e->System.out.println("Begin draw was pressed but not yet implemented..."));
 		beginDrawButton.setDisable(true); //Disable until spotcount and drawcount are chosen
 
+		//Put it all together and send back gameplay scene
 		VBox gameplayVBox = new VBox(gameplayMenuBar, gameplayImageView, spotsLabel, spotsButtonsHBox, drawLabel, drawButtonsHBox, betCardGridPane, pickForMeButton, beginDrawButton);
 		Scene gameplayScene = new Scene(gameplayVBox, 700, 700);
 		return gameplayScene;
@@ -292,6 +313,7 @@ public class Project2Keno extends Application {
 			//Add the button to our set
 			spotsSet.add(randomSpotButton);
 		}
+		checkIfReadyToBegin(beginDrawButton);
 	}
 
 	private void resetGrid(GridPane givenGridPane) {
@@ -309,6 +331,13 @@ public class Project2Keno extends Application {
 		spotsSet.clear();
 		//We need to reset the currentSpotCount
 		currentSpotCount = 0;
+	}
+
+	private void checkIfReadyToBegin(Button beginButton) {
+		if (chosenSpotCount == currentSpotCount && chosenDrawCount != 0)
+			beginButton.setDisable(false);
+		else
+			beginButton.setDisable(true);
 	}
 
 }
