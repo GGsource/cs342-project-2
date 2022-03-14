@@ -56,7 +56,7 @@ public class Project2Keno extends Application {
 	private HashSet<ToggleButton> spotsSet = new HashSet<>();
 	private Button beginDrawButton = new Button("Begin Draw");
 	private Button nextdrawingButton = new Button("Next Drawing");
-	private ArrayList<Integer> drawTimeList = new ArrayList<>();
+	public ArrayList<Integer> drawTimeList = new ArrayList<>();
 	private ArrayList<Integer> matchedList = new ArrayList<>();
 	private int totalWon = 0;
 	private GridPane betCardGridPane = new GridPane(); //Grid for betcard buttons
@@ -449,7 +449,7 @@ public class Project2Keno extends Application {
 	}
 
 	private Scene createDrawingScene(Stage givenStage) {
-		seedRandomList();
+		drawTimeList = seedRandomList();
 
 		ImageView moneyBagLeft = new ImageView(new Image("file:./src/main/resources/money_bag_logo.png", true));
 		ImageView drawingTitleImage = new ImageView(new Image("file:./src/main/resources/drawing_title.png", true));
@@ -671,16 +671,18 @@ public class Project2Keno extends Application {
 		matchedNumsLabel.setText(matchedList.size() + " Matches: " + matchedList);
 	}
 
-	private void seedRandomList() {
+	public static ArrayList<Integer> seedRandomList() {
 		Random r = new Random();
+		ArrayList<Integer> newDrawsList = new ArrayList<>();
 		for (int i = 0; i < 20; i++) {
 			int newNum = r.nextInt(79) + 1;
-			if (drawTimeList.contains(newNum)) {
+			if (newDrawsList.contains(newNum)) {
 				i--;
 				continue;
 			}
-			drawTimeList.add(newNum);
+			newDrawsList.add(newNum);
 		}
+		return newDrawsList;
 		//we now have 20 random numbers in drawTimeSet
 	}
 
@@ -692,7 +694,7 @@ public class Project2Keno extends Application {
 		wonThisRoundLabel.setText("Won this round: Wait til end of Drawing...");
 		nextdrawingButton.setDisable(true);
 		isNewDrawingSession = false;
-		seedRandomList();
+		drawTimeList = seedRandomList();
 	}
 
 	private int calculateRoundWinnings() {
