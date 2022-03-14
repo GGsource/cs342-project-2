@@ -228,7 +228,8 @@ public class Project2Keno extends Application {
 							//Remove from list of chosen numbers
 							spotsSet.remove(gridButton);
 							//DEBUGGING: Line to be disabled later
-							System.out.println("Currently Chosen Spots: " + spotsSet);
+							//System.out.println("Currently Chosen Spots: " + spotsSet);
+
 							//number of buttons selected is now LESS than chosenSpotCount, reenable all buttons
 							// for (Node gButton : betCardGridPane.getChildren()) {
 							// 	ToggleButton castedBtn = (ToggleButton) gButton;
@@ -244,7 +245,8 @@ public class Project2Keno extends Application {
 							//Add to list of chosen numbers
 							spotsSet.add(gridButton);
 							//DEBUGGING: line to be disabled later
-							System.out.println("Currently Chosen Spots: " + spotsSet);
+							//System.out.println("Currently Chosen Spots: " + spotsSet);
+
 							//If amount of buttons selected is now = to chosenSpotCount then disable all buttons OTHER than already chosen ones
 							// if (currentSpotCount >= chosenSpotCount) {
 							// 	for (Node gButton : betCardGridPane.getChildren()) {
@@ -296,7 +298,7 @@ public class Project2Keno extends Application {
 					chosenSpotCount = Integer.parseInt(spotButton.getText());
 					currentSpotCount = 0;
 					//DEBUGGING:
-					System.out.println("Spot button was pressed! chosenSpotCount is now " + chosenSpotCount);
+					//System.out.println("Spot button was pressed! chosenSpotCount is now " + chosenSpotCount);
 					//Now that spots are chosen, enable grid!
 					betCardGridPane.setDisable(false);
 					//Enable random pick too
@@ -334,7 +336,7 @@ public class Project2Keno extends Application {
 					chosenDrawButton = drawButton; //update chosen draw button
 					chosenDrawCount = Integer.parseInt(drawButton.getText());
 					//DEBUGGING:
-					System.out.println("Draw button was pressed! chosenDrawCount is now " + chosenDrawCount);
+					//System.out.println("Draw button was pressed! chosenDrawCount is now " + chosenDrawCount);
 					checkIfReadyToBegin(beginDrawButton);
 				}
 			});
@@ -406,7 +408,7 @@ public class Project2Keno extends Application {
 			//Check if this is a repeat
 			if (spotsSet.contains(randomSpotButton)) {
 				//DEBUGGING:
-				System.out.println("DUPLICATE RANDOM GIVEN! Trying for another number.");
+				//System.out.println("DUPLICATE RANDOM GIVEN! Trying for another number.");
 				i--;//Make sure we still run enough times even if there's a duplicate
 				continue;//Don't run the rest of the code, start a new iteration of the loop
 			}
@@ -426,7 +428,7 @@ public class Project2Keno extends Application {
 		if (spotsSet.isEmpty())
 			return; //No spots have been selected, there's no need to reset anything
 		//DEBUGGING:
-		System.out.println("resetGrid was called successfully");
+		//System.out.println("resetGrid was called successfully");
 		for (ToggleButton spotButton : spotsSet) {
 			//We need to reset button color
 			spotButton.setStyle("-fx-background-color: " + ToggleButton.normalColor);
@@ -647,7 +649,7 @@ public class Project2Keno extends Application {
 	}
 	private void updateDraw() {
 		int currentChosenNum = drawTimeList.remove(0);
-		System.out.println("Just removed " + currentChosenNum);
+		//System.out.println("Just removed " + currentChosenNum);
 		//Show what draw round this is out of how many
 		drawRoundLabel.setText("Drawing "+ currentDrawCount + " of " + chosenDrawCount);
 		//Display the next number
