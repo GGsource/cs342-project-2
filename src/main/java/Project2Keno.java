@@ -1,7 +1,9 @@
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -16,7 +18,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 //TODO: Header Comment
 
@@ -27,21 +31,56 @@ public class Project2Keno extends Application {
 	private Scene rulesScene = null;
 	private Scene oddsScene = null;
 	private Scene gameplayScene = null;
+	private Scene drawingScene = null;
 
 	//Global Variables
 	private int chosenSpotCount; //Amount of spots user said they want
 	private int currentSpotCount;//Amount of spots user has chosen so far
 	private ToggleButton chosenSpotButton = null; //Keep track of which spot button is chosen
 	private int chosenDrawCount;
+	private int currentDrawCount = 0;
 	private ToggleButton chosenDrawButton = null;
 	private HashSet<ToggleButton> spotsSet = new HashSet<>();
 	private Button beginDrawButton = new Button("Begin Draw");
+	private Button nextdrawingButton = new Button("Next Drawing");
+	private ArrayList<Integer> drawTimeList = new ArrayList<>();
+	private ArrayList<Integer> matchedList = new ArrayList<>();
+	private int totalWon = 0;
+	private GridPane betCardGridPane = new GridPane(); //Grid for betcard buttons
+	private boolean isNewDrawingSession = false;
+
+	private Label currentNumLabel = new Label("beginning roll...");
+	//Label reminding you of spots you chose
+	private Label chosenSpotsLabel = new Label("Your chosen numbers were: ");
+	//Label for all numbers as theyre being shown
+	private Label allNumsLabel = new Label("Rolled thus far: ");
+	//Label for matched numbers
+	private Label matchedNumsLabel = new Label(" Matches: ");
+	//Label for how much has been won this drawing
+	private Label wonThisRoundLabel = new Label("Won this round: Wait til end of drawing...");
+	// private PauseTransitionList pauseTransitionList;
+	Duration d = Duration.seconds(0.1);
+	private PauseTransition pauseList[] = {
+		new PauseTransition(d), new PauseTransition(d), new PauseTransition(d), new PauseTransition(d), new PauseTransition(d),
+		new PauseTransition(d), new PauseTransition(d), new PauseTransition(d), new PauseTransition(d), new PauseTransition(d),
+		new PauseTransition(d), new PauseTransition(d), new PauseTransition(d), new PauseTransition(d), new PauseTransition(d),
+		new PauseTransition(d), new PauseTransition(d), new PauseTransition(d), new PauseTransition(d), new PauseTransition(d),};
 	
 	private void initializeScenes(Stage givenStage) {
 		welcomeScene = createWelcomeScene(givenStage);
 		rulesScene = createRuleScene(givenStage);
 		oddsScene = createOddScene(givenStage);
 		gameplayScene = createGameplayScene(givenStage);
+		drawingScene = createDrawingScene(givenStage);
+
+		//So much wasted time implementing this only to remove it
+
+		// PauseTransitionList.PauseTransitionNode ptNode = pauseTransitionList.new PauseTransitionNode(new PauseTransition(Duration.seconds(2)));
+		// pauseTransitionList = new PauseTransitionList(ptNode);
+		// int i = 1;
+		// while (i < 19) {
+		// 	pauseTransitionList.head.add(new PauseTransition(Duration.seconds(2)));
+		// }
 	}
 
 	public static void main(String[] args) {
@@ -118,9 +157,7 @@ public class Project2Keno extends Application {
 		MenuBar gameplayMenuBar = new MenuBar(rulesAndOddsMenu, newLookMenu);
 		//Image - Lets the user see they are now on the bet card
 		ImageView gameplayImageView = new ImageView(new Image("file:./src/main/resources/gameplay_title.png", true));
-
-		//Grid for betcard buttons
-		GridPane betCardGridPane = new GridPane(); 
+ 
 		//Populate GridPane with buttons
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 10; j++ ) {
@@ -249,7 +286,7 @@ public class Project2Keno extends Application {
 		}
 
 		//Begin Draw Button - Needs to be high up to pass to other functions
-		beginDrawButton.setOnAction(e->System.out.println("Begin draw was pressed but not yet implemented..."));
+		beginDrawButton.setOnAction(e->beginDrawingSequence(givenStage));
 		beginDrawButton.setDisable(true); //Disable until spotcount and drawcount are chosen
 
 		//Put it all together and send back gameplay scene
@@ -338,6 +375,239 @@ public class Project2Keno extends Application {
 			beginButton.setDisable(false);
 		else
 			beginButton.setDisable(true);
+	}
+
+	private Scene createDrawingScene(Stage givenStage) {
+		seedRandomList();
+
+		ImageView moneyBagLeft = new ImageView(new Image("file:./src/main/resources/money_bag_logo.png", true));
+		ImageView drawingTitleImage = new ImageView(new Image("file:./src/main/resources/drawing_title.png", true));
+		ImageView moneyBagRight = new ImageView(new Image("file:./src/main/resources/money_bag_logo.png", true));
+		HBox topImagesHBox = new HBox(moneyBagLeft, drawingTitleImage, moneyBagRight);
+
+		//Label for current keno number being shown
+		currentNumLabel.setFont(new Font("Arial", 34));
+		//label for how much has been won in total
+		Label wonInTotalLabel = new Label("Won in total: Wait til first drawing finishes...");
+		//button for next drawing should be off by default
+		nextdrawingButton.setDisable(true);
+		//if currentdrawingcount == chosendrawingcount then disable
+		//nextdrawingbutton and enable new bet button and exit button
+		Button newBetButton = new Button("New Bet");
+		Button exitButton = new Button("Exit");
+		//Disable these by default
+		newBetButton.setDisable(true);
+		newBetButton.setOnAction(e->{
+			resetGrid(betCardGridPane);
+			givenStage.setScene(gameplayScene);
+			isNewDrawingSession = true;
+			beginDrawButton.setDisable(true);//avoid user going back and starting withotu selecting something
+		});
+		exitButton.setDisable(true);
+		exitButton.setOnAction(e->givenStage.close()); //Closes window
+		//Put them next to each other
+		HBox endHBox = new HBox(newBetButton, exitButton);
+
+		pauseList[0].setOnFinished(e->{
+			///When the pause is over
+			//remove the already shown number from list and save it to use
+			updateDraw();
+			pauseList[1].play();
+		});
+		pauseList[1].setOnFinished(e->{
+			updateDraw();
+			pauseList[2].play();
+		});
+		pauseList[2].setOnFinished(e->{
+			updateDraw();
+			pauseList[3].play();
+		});
+		pauseList[3].setOnFinished(e->{
+			updateDraw();
+			pauseList[4].play();
+		});
+		pauseList[4].setOnFinished(e->{
+			updateDraw();
+			pauseList[5].play();
+		});
+		pauseList[5].setOnFinished(e->{
+			updateDraw();
+			pauseList[6].play();
+		});
+		pauseList[6].setOnFinished(e->{
+			updateDraw();
+			pauseList[7].play();
+		});
+		pauseList[7].setOnFinished(e->{
+			updateDraw();
+			pauseList[8].play();
+		});
+		pauseList[8].setOnFinished(e->{
+			updateDraw();
+			pauseList[9].play();
+		});
+		pauseList[9].setOnFinished(e->{
+			updateDraw();
+			pauseList[10].play();
+		});
+		pauseList[10].setOnFinished(e->{
+			updateDraw();
+			pauseList[11].play();
+		});
+		pauseList[11].setOnFinished(e->{
+			updateDraw();
+			pauseList[12].play();
+		});
+		pauseList[12].setOnFinished(e->{
+			updateDraw();
+			pauseList[13].play();
+		});
+		pauseList[13].setOnFinished(e->{
+			updateDraw();
+			pauseList[14].play();
+		});
+		pauseList[14].setOnFinished(e->{
+			updateDraw();
+			pauseList[15].play();
+		});
+		pauseList[15].setOnFinished(e->{
+			updateDraw();
+			pauseList[16].play();
+		});
+		pauseList[16].setOnFinished(e->{
+			updateDraw();
+			pauseList[17].play();
+		});
+		pauseList[17].setOnFinished(e->{
+			updateDraw();
+			pauseList[18].play();
+		});
+		pauseList[18].setOnFinished(e->{
+			updateDraw();
+			pauseList[19].play();
+		});
+		pauseList[19].setOnFinished(e->{
+			updateDraw();
+			if (currentDrawCount < chosenDrawCount) {
+				nextdrawingButton.setDisable(false); //If more drawings are going to happen, turn on button
+			}
+			else {
+				//Else we're done drawing, time to enable end buttons
+				newBetButton.setDisable(false);
+				exitButton.setDisable(false);
+			}
+			//show how much was won this round
+			int roundCashWon = matchedList.size() * 10;
+			wonThisRoundLabel.setText("Won this round: probably like $" + roundCashWon);
+			//Show how much has been won in total
+			totalWon += roundCashWon;
+			wonInTotalLabel.setText("Won in total: $" + totalWon);
+		});
+
+		nextdrawingButton.setOnAction(e->{
+			//Now first drawing is finished. If they picked more drawings try again
+			if (currentDrawCount < chosenDrawCount) {
+				clearDrawingBoard();
+				currentDrawCount += 1;
+			}
+		});
+
+		// PauseTransitionList.PauseTransitionNode traversalNode = pauseTransitionList.head;
+		// while (traversalNode != null)
+		// {
+		// 	PauseTransition p = traversalNode.currentP;
+		// 	PauseTransitionList.PauseTransitionNode nextP = traversalNode.next;
+		// 	p.setOnFinished(e->{
+		// 		//When the pause is over
+		// 		//remove the already shown number from list and save it to use
+		// 		int currentChosenNum = drawTimeList.remove(0);
+		// 		//Display the next number
+		// 		currentNumLabel.setText("" + currentChosenNum);
+		// 		//Display all numbers revealed thus far
+		// 		allNumsLabel.setText(allNumsLabel.getText() + currentChosenNum + " ");
+		// 		//Display new matchings
+		// 		for (ToggleButton tB : spotsSet) {
+		// 			if (Integer.parseInt(tB.getText()) == currentChosenNum) {
+		// 				matchedList.add(currentChosenNum);
+		// 			}
+		// 		}
+		// 		String matchesString = "";
+		// 		for (Integer match : matchedList) {
+		// 			matchesString += match + " ";
+		// 		}
+		// 		matchedNumsLabel.setText(matchesString);
+		// 		//Display how much has been won this drawing
+		// 		//Display total won
+		// 		if (nextP != null) {
+		// 			nextP.currentP.play();
+		// 		}
+
+		// 	});
+
+		// 	traversalNode = traversalNode.next;
+		// }
+
+		VBox drawingVBox = new VBox(topImagesHBox, currentNumLabel, chosenSpotsLabel, allNumsLabel, matchedNumsLabel, wonThisRoundLabel, wonInTotalLabel, nextdrawingButton, endHBox);
+		Scene drawingScene = new Scene(drawingVBox, 700, 700);
+		return drawingScene;
+	}
+
+	private void beginDrawingSequence(Stage givenStage) {
+		givenStage.setScene(drawingScene);
+		if (isNewDrawingSession) {
+			currentDrawCount = 0;
+			seedRandomList();
+			clearDrawingBoard();
+		}
+		pauseList[0].play();
+		currentDrawCount += 1;
+		// pauseTransitionList.head.currentP.play();
+	}
+	private void updateDraw() {
+		int currentChosenNum = drawTimeList.remove(0);
+		//Display the next number
+		currentNumLabel.setText("" + currentChosenNum);
+		//Display previously chosen spots
+		String allchosenSpotsString = "";
+		for (ToggleButton tB : spotsSet) {
+			allchosenSpotsString += tB.getText() + " ";
+		}
+		chosenSpotsLabel.setText("Your chosen numbers were:" + allchosenSpotsString);
+		//Display all numbers revealed thus far
+		allNumsLabel.setText(allNumsLabel.getText() + currentChosenNum + " ");
+		//Display new matchings
+		for (ToggleButton tB : spotsSet) {
+			if (Integer.parseInt(tB.getText()) == currentChosenNum) {
+				matchedList.add(currentChosenNum);
+			}
+		}
+		matchedNumsLabel.setText(matchedList.size() + " Matches: " + matchedList);
+	}
+
+	private void seedRandomList() {
+		Random r = new Random();
+		for (int i = 0; i < 20; i++) {
+			int newNum = r.nextInt(79) + 1;
+			if (drawTimeList.contains(newNum)) {
+				i--;
+				continue;
+			}
+			drawTimeList.add(newNum);
+		}
+		//we now have 20 random numbers in drawTimeSet
+	}
+
+	private void clearDrawingBoard() {
+		currentNumLabel.setText("beginning roll...");
+		chosenSpotsLabel.setText("Your chosen spots were: ");
+		allNumsLabel.setText("Rolled in this drawing: ");
+		matchedNumsLabel.setText(" Matches: ");
+		matchedList.clear();
+		wonThisRoundLabel.setText("Won this round: Wait til end of Drawing...");
+		nextdrawingButton.setDisable(true);
+		
+		seedRandomList();//Give it new numbers to work with
+		pauseList[0].play();
 	}
 
 }
