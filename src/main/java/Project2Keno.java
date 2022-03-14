@@ -489,6 +489,9 @@ public class Project2Keno extends Application {
 		endHBox.setAlignment(Pos.CENTER);
 		endHBox.setSpacing(20);
 
+		//I tried many many ways to do this in a less literal way but they all completely failed.
+		//Even made a PauseTransitionList and PauseTransitionNode which took several hours but they always failed
+		//So only option was to make it a literal copy paste chain.
 		pauseList[0].setOnFinished(e->{
 			///When the pause is over
 			//remove the already shown number from list and save it to use
@@ -580,7 +583,7 @@ public class Project2Keno extends Application {
 				exitButton.setDisable(false);
 			}
 			//show how much was won this round
-			int roundCashWon = calculateRoundWinnings();
+			int roundCashWon = calculateRoundWinnings(matchedList.size(), chosenSpotCount);
 			wonThisRoundLabel.setText("Won this round: $" + roundCashWon);
 			//Show how much has been won in total
 			totalWon += roundCashWon;
@@ -697,50 +700,49 @@ public class Project2Keno extends Application {
 		drawTimeList = seedRandomList();
 	}
 
-	private int calculateRoundWinnings() {
-		int matches = matchedList.size();
-		switch (chosenSpotCount) {
+	public static int calculateRoundWinnings(int matchCount, int givenSpotCount) {
+		switch (givenSpotCount) {
 			case 1: {
-				if (matches == 1)
+				if (matchCount == 1)
 					return 2;
 				break;
 			}
 			case 4: {
-				if (matches == 2)
+				if (matchCount == 2)
 					return 1;
-				else if (matches == 3)
+				else if (matchCount == 3)
 					return 5;
-				else if (matches == 4)
+				else if (matchCount == 4)
 					return 75;
 				break;
 			}
 			case 8: {
-				if (matches == 4)
+				if (matchCount == 4)
 					return 2;
-				if (matches == 5)
+				if (matchCount == 5)
 					return 12;
-				if (matches == 6)
+				if (matchCount == 6)
 					return 50;
-				if (matches == 7)
+				if (matchCount == 7)
 					return 750;
-				if (matches == 8)
+				if (matchCount == 8)
 					return 10000;
 				break;
 			}
 			case 10: {
-				if (matches == 0)
+				if (matchCount == 0)
 					return 5;
-				if (matches == 5)
+				if (matchCount == 5)
 					return 2;
-				if (matches == 6)
+				if (matchCount == 6)
 					return 15;
-				if (matches == 7)
+				if (matchCount == 7)
 					return 40;
-				if (matches == 8)
+				if (matchCount == 8)
 					return 450;
-				if (matches == 9)
+				if (matchCount == 9)
 					return 4250;
-				if (matches == 10)
+				if (matchCount == 10)
 					return 100000;
 				break;
 			}

@@ -1,5 +1,7 @@
 import javafx.animation.PauseTransition;
 
+//Wasted several hours on this only for it to not work anyways :)
+
 public class PauseTransitionList {
     public PauseTransitionNode head;
     //Populate list of transitions
